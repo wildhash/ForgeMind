@@ -70,7 +70,16 @@ class Settings(BaseSettings):
     )
 
 
+def load_settings() -> Settings:
+    """Load a fresh Settings instance from the environment and `.env` file."""
+    return Settings()
+
+
 @lru_cache(maxsize=1)
+def _load_settings() -> Settings:
+    return load_settings()
+
+
 def get_settings() -> Settings:
     """Return a cached Settings instance.
 
@@ -78,9 +87,9 @@ def get_settings() -> Settings:
     file after the first call will not be reflected until the process restarts (or the
     cache is cleared).
     """
-    return Settings()
+    return _load_settings()
 
 
 def _reset_settings_cache() -> None:
     """Clear the cached settings instance (intended for tests)."""
-    get_settings.cache_clear()
+    _load_settings.cache_clear()

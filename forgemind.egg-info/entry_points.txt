@@ -1,2 +1,0 @@
-[console_scripts]
-forgemind = src.main:app

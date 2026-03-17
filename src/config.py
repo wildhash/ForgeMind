@@ -10,7 +10,7 @@ from functools import lru_cache
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-__all__ = ["Settings", "get_settings"]
+__all__ = ["Settings", "get_settings", "reload_settings"]
 
 
 class Settings(BaseSettings):
@@ -78,6 +78,12 @@ def get_settings() -> Settings:
 
     Settings are loaded once per process. Changes to environment variables or the `.env`
     file after the first call will not be reflected until the process restarts (or the
-    cache is cleared).
+    cache is cleared via `reload_settings()`.
     """
     return Settings()
+
+
+def reload_settings() -> Settings:
+    """Clear the settings cache and reload from environment / `.env`."""
+    get_settings.cache_clear()
+    return get_settings()

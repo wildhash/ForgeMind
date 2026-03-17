@@ -71,16 +71,19 @@ class Settings(BaseSettings):
 
 
 @lru_cache(maxsize=1)
-def get_settings() -> Settings:
-    """Return a cached Settings instance.
+def _load_settings() -> Settings:
+    """Load settings once per process.
 
-    Settings are loaded once per process via this function. Changes to environment
-    variables or the `.env` file after the first call will not be reflected until the
-    process restarts (or the cache is explicitly cleared).
-
-    To force a reload (primarily for tests), call `get_settings.cache_clear()`.
-
-    Always use `get_settings()` instead of instantiating `Settings` directly if you rely
-    on this caching behavior.
+    This is intentionally cached. In tests, call `_load_settings.cache_clear()` to force
+    reload after environment changes.
     """
     return Settings()
+
+
+def get_settings() -> Settings:
+    """Return the process-wide Settings instance.
+
+    Normally settings are loaded once per process. In tests, call
+    `_load_settings.cache_clear()` to force a reload after environment changes.
+    """
+    return _load_settings()

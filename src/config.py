@@ -81,11 +81,3 @@ def get_settings() -> Settings:
     cache is cleared).
     """
     return Settings()
-
-
-def _test_reset_settings_cache() -> None:
-    """[TESTS ONLY] Clear the cached settings instance.
-
-    Do not call this from production code; assume process-level configuration.
-    """
-    get_settings.cache_clear()

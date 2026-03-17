@@ -5,8 +5,6 @@ Reads from .env file and environment variables.
 
 from __future__ import annotations
 
-from functools import lru_cache
-
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -72,18 +70,27 @@ class Settings(BaseSettings):
     )
 
 
-@lru_cache(maxsize=1)
+_settings: Settings | None = None
+
+
 def get_settings() -> Settings:
     """Return a cached Settings instance.
 
-    Settings are loaded once per process. Changes to environment variables or the `.env`
-    file after the first call will not be reflected until the process restarts (or the
-    cache is cleared via `reload_settings()`.
+    Settings are loaded once per process via this function. Changes to environment
+    variables or the `.env` file after the first call will not be reflected until the
+    process restarts (or the cache is cleared via `reload_settings()`).
+
+    Always use `get_settings()` / `reload_settings()` instead of instantiating `Settings`
+    directly if you rely on this caching behavior.
     """
-    return Settings()
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
 
 
 def reload_settings() -> Settings:
     """Clear the settings cache and reload from environment / `.env`."""
-    get_settings.cache_clear()
-    return get_settings()
+    global _settings
+    _settings = Settings()
+    return _settings

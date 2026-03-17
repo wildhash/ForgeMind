@@ -78,6 +78,8 @@ def get_settings() -> Settings:
     variables or the `.env` file after the first call will not be reflected until the
     process restarts (or the cache is explicitly cleared).
 
+    To force a reload (primarily for tests), call `get_settings.cache_clear()`.
+
     Always use `get_settings()` instead of instantiating `Settings` directly if you rely
     on this caching behavior.
     """

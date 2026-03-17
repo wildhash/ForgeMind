@@ -1,4 +1,4 @@
-"""ForgeMind CLI entry point.
+﻿"""ForgeMind CLI entry point.
 
 Exposes developer-facing commands for ingesting data, generating code,
 inspecting memory, running evolution analysis, and launching the dashboard.
@@ -16,7 +16,7 @@ from rich.console import Console
 
 app = typer.Typer(
     name="forgemind",
-    help="ForgeMind — the coding agent that never makes the same mistake twice.",
+    help="ForgeMind â€” the coding agent that never makes the same mistake twice.",
     no_args_is_help=True,
 )
 ingest_app = typer.Typer(help="Ingest data from various sources.")
@@ -31,7 +31,7 @@ err_console = Console(stderr=True)
 def _setup_logging(level: str = "INFO") -> None:
     logging.basicConfig(
         level=getattr(logging, level.upper(), logging.INFO),
-        format="%(asctime)s %(levelname)s %(name)s — %(message)s",
+        format="%(asctime)s %(levelname)s %(name)s â€” %(message)s",
         datefmt="%H:%M:%S",
     )
 
@@ -64,7 +64,7 @@ def ingest_github(
 
         async with EverMemOSClient() as client:
             results = await ingest_batch(memories, client)
-        console.print(f"[bold green]✓ Stored {len(results)} memories[/bold green]")
+        console.print(f"[bold green]âœ“ Stored {len(results)} memories[/bold green]")
 
     asyncio.run(_run())
 
@@ -87,7 +87,7 @@ def ingest_coderabbit(
         console.print(f"[green]Parsed {len(memories)} memories[/green]")
         async with EverMemOSClient() as client:
             results = await ingest_batch(memories, client)
-        console.print(f"[bold green]✓ Stored {len(results)} memories[/bold green]")
+        console.print(f"[bold green]âœ“ Stored {len(results)} memories[/bold green]")
 
     asyncio.run(_run())
 
@@ -111,7 +111,7 @@ def ingest_linter(
         console.print(f"[green]Parsed {len(memories)} memories[/green]")
         async with EverMemOSClient() as client:
             results = await ingest_batch(memories, client)
-        console.print(f"[bold green]✓ Stored {len(results)} memories[/bold green]")
+        console.print(f"[bold green]âœ“ Stored {len(results)} memories[/bold green]")
 
     asyncio.run(_run())
 
@@ -135,7 +135,7 @@ def ingest_generic(
         console.print(f"[green]Parsed {len(memories)} memories[/green]")
         async with EverMemOSClient() as client:
             results = await ingest_batch(memories, client)
-        console.print(f"[bold green]✓ Stored {len(results)} memories[/bold green]")
+        console.print(f"[bold green]âœ“ Stored {len(results)} memories[/bold green]")
 
     asyncio.run(_run())
 
@@ -158,7 +158,7 @@ def ingest_pytest(
         console.print(f"[green]Parsed {len(memories)} memories[/green]")
         async with EverMemOSClient() as client:
             results = await ingest_batch(memories, client)
-        console.print(f"[bold green]✓ Stored {len(results)} memories[/bold green]")
+        console.print(f"[bold green]âœ“ Stored {len(results)} memories[/bold green]")
 
     asyncio.run(_run())
 
@@ -202,7 +202,7 @@ def generate(
         if result.warnings:
             console.print("\n[yellow]Warnings:[/yellow]")
             for w in result.warnings:
-                console.print(f"  • {w}")
+                console.print(f"  â€¢ {w}")
 
         if output:
             output.write_text(result.code)
@@ -235,7 +235,7 @@ def memory_stats(
                     hits = await client.search_memories(
                         query="*", space_id=space, retrieve_method="keyword", top_k=1
                     )
-                    console.print(f"  {space:<32} {len(hits):>4} memories (sample)")
+                    console.print(f"  {space:<32} {len(hits):>4} memories (presence check)")
                 except Exception as exc:
                     console.print(f"  {space:<32} [red]error: {exc}[/red]")
 
@@ -317,9 +317,9 @@ def evolve(
         async with EverMemOSClient() as client:
             strategist = Strategist()
             strategies = await strategist.run(client)
-        console.print(f"[bold green]✓ Derived {len(strategies)} strategies[/bold green]")
+        console.print(f"[bold green]âœ“ Derived {len(strategies)} strategies[/bold green]")
         for s in strategies:
-            console.print(f"  • [bold]{s.name}[/bold]: {s.description[:80]}")
+            console.print(f"  â€¢ [bold]{s.name}[/bold]: {s.description[:80]}")
 
     asyncio.run(_run())
 
@@ -362,3 +362,4 @@ def dashboard(
 
 if __name__ == "__main__":
     app()
+

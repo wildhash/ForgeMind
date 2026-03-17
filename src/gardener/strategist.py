@@ -1,4 +1,4 @@
-"""Meta-strategist — analyses memory landscape and derives actionable strategies."""
+﻿"""Meta-strategist â€” analyses memory landscape and derives actionable strategies."""
 
 from __future__ import annotations
 
@@ -96,6 +96,8 @@ class Strategist:
         top_categories: list[str],
     ) -> list[StrategyProfile]:
         """Use LLM to derive strategies from memory analysis."""
+        import asyncio
+
         settings = get_settings()
         if not settings.anthropic_api_key:
             return []
@@ -107,15 +109,18 @@ class Strategist:
         )
 
         try:
-            llm = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-            message = llm.messages.create(
-                model=settings.anthropic_model,
-                max_tokens=2048,
-                system=STRATEGY_SYSTEM,
-                messages=[{"role": "user", "content": user_content}],
-            )
-            raw = message.content[0].text.strip()
-            data: dict[str, Any] = json.loads(raw)
+            def _generate_via_llm() -> dict[str, Any]:
+                llm = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+                message = llm.messages.create(
+                    model=settings.anthropic_model,
+                    max_tokens=2048,
+                    system=STRATEGY_SYSTEM,
+                    messages=[{"role": "user", "content": user_content}],
+                )
+                raw = message.content[0].text.strip()
+                return json.loads(raw)
+
+            data: dict[str, Any] = await asyncio.to_thread(_generate_via_llm)
             raw_strategies: list[dict] = data.get("strategies", [])
         except Exception as exc:
             logger.error("Strategy generation failed: %s", exc)
@@ -136,3 +141,4 @@ class Strategist:
             except Exception as exc:
                 logger.debug("Skipping malformed strategy item: %s", exc)
         return profiles
+

@@ -1,4 +1,4 @@
-"""Memory recall — the intelligence layer above raw search.
+﻿"""Memory recall â€” the intelligence layer above raw search.
 
 Takes a CodeRequest and assembles a MemoryContext by querying all
 relevant memory spaces, deduplicating results, and generating a
@@ -42,7 +42,7 @@ def _hit_to_code_memory(hit: dict[str, Any]) -> CodeMemory | None:
             severity=Severity(metadata.get("severity", "medium")),
         )
     except Exception as exc:
-        logger.debug("Could not parse hit to CodeMemory: %s — %s", hit, exc)
+        logger.debug("Could not parse hit to CodeMemory: %s â€” %s", hit, exc)
         return None
 
 
@@ -63,6 +63,8 @@ async def _generate_memory_summary(
     settings: Any,
 ) -> str:
     """Use the LLM to produce a concise briefing from retrieved memories."""
+    import asyncio
+
     if not any(memories_by_space.values()):
         return "No relevant prior memories found."
 
@@ -74,19 +76,22 @@ async def _generate_memory_summary(
     prompt = (
         "You are ForgeMind's memory analyst. Summarise the following memories "
         "retrieved for the task below. Focus on actionable warnings and patterns. "
-        "Be concise — 3-5 sentences max.\n\n"
+        "Be concise â€” 3-5 sentences max.\n\n"
         f"TASK: {task}\n\n"
         "RETRIEVED MEMORIES:\n" + "\n\n".join(snippets)
     )
 
     try:
-        client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-        message = client.messages.create(
-            model=settings.anthropic_model,
-            max_tokens=512,
-            messages=[{"role": "user", "content": prompt}],
-        )
-        return message.content[0].text
+        def _call_llm() -> str:
+            client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+            message = client.messages.create(
+                model=settings.anthropic_model,
+                max_tokens=512,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return message.content[0].text
+
+        return await asyncio.to_thread(_call_llm)
     except Exception as exc:
         logger.warning("Could not generate memory summary: %s", exc)
         return "Memory summary unavailable."
@@ -171,3 +176,4 @@ async def assemble_context(
         active_strategies=strategies[:5],
         memory_summary=summary,
     )
+

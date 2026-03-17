@@ -1,7 +1,7 @@
-"""LLM-powered code generation engine.
+﻿"""LLM-powered code generation engine.
 
 Implements the core GENERATE step of the ForgeMind loop:
-recall context → build prompt → call Claude → verify → learn → return.
+recall context â†’ build prompt â†’ call Claude â†’ verify â†’ learn â†’ return.
 """
 
 from __future__ import annotations
@@ -42,13 +42,13 @@ def _parse_code_result(raw: str) -> CodeResult:
             warnings=data.get("warnings", []),
         )
     except (json.JSONDecodeError, KeyError, ValueError):
-        # Non-JSON response — treat the entire output as code
+        # Non-JSON response â€” treat the entire output as code
         logger.warning("LLM did not return JSON; treating output as raw code")
         return CodeResult(
             code=raw,
             reasoning="Raw code from LLM (non-JSON response)",
             confidence=0.3,
-            warnings=["Response was not structured JSON — manual review recommended"],
+            warnings=["Response was not structured JSON â€” manual review recommended"],
         )
 
 
@@ -81,7 +81,7 @@ class CodeGenerator:
             try:
                 ctx = await assemble_context(request, client)
             except Exception as exc:
-                logger.warning("Memory recall failed: %s — proceeding without memory", exc)
+                logger.warning("Memory recall failed: %s â€” proceeding without memory", exc)
                 ctx = MemoryContext()
         else:
             ctx = MemoryContext()
@@ -167,5 +167,12 @@ class CodeGenerator:
                 test_requirements=request.test_requirements,
             )
 
+        # If retries=0 or all retries failed, return the last generated result
+        if not attempts:
+            # No attempts were made (retries=0), generate once without verification
+            result = await self.generate(current_request, memory_client)
+            attempts.append("Attempt 1: passed=False (no verification performed)")
+
         logger.warning("All %d generation attempts failed verification", retries)
-        return result, attempts  # type: ignore[return-value]
+        return result, attempts
+

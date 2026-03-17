@@ -1,8 +1,8 @@
-"""Generic LLM-powered ingestor.
+﻿"""Generic LLM-powered ingestor.
 
 Accepts raw text from ANY tool (CharlieHelps, BugBot, Macroscope,
 InfinitiCode, etc.) and uses Claude to extract structured CodeMemory fields.
-This is the killer feature — no custom parser needed for new tools.
+This is the killer feature â€” no custom parser needed for new tools.
 """
 
 from __future__ import annotations
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 _EXTRACTION_SYSTEM = """\
 You are a code intelligence extractor for ForgeMind. Given raw output from any
 developer tool, extract structured information about bugs, reviews, failures,
-or patterns. Return ONLY valid JSON — no prose, no markdown fences.
+or patterns. Return ONLY valid JSON â€” no prose, no markdown fences.
 
 Return a JSON array of objects, each with these keys:
 - narrative (string, required): Rich description of what happened, why, and the fix/lesson.
@@ -63,6 +63,8 @@ class GenericIngestor(BaseIngestor):
         Args:
             raw_input: Any raw text, dict payload, or Path to a text file.
         """
+        import asyncio
+
         content = await self._read_input(raw_input)
         if isinstance(content, dict):
             content = json.dumps(content, indent=2)
@@ -72,23 +74,26 @@ class GenericIngestor(BaseIngestor):
 
         settings = get_settings()
         if not settings.anthropic_api_key:
-            logger.warning("No Anthropic API key — generic ingestor unavailable")
+            logger.warning("No Anthropic API key â€” generic ingestor unavailable")
             return []
 
         try:
-            client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
-            message = client.messages.create(
-                model=settings.anthropic_model,
-                max_tokens=2048,
-                system=_EXTRACTION_SYSTEM,
-                messages=[
-                    {
-                        "role": "user",
-                        "content": f"Extract code intelligence from this tool output:\n\n{content[:8000]}",
-                    }
-                ],
-            )
-            raw_json = message.content[0].text.strip()
+            def _extract_via_llm() -> str:
+                client = anthropic.Anthropic(api_key=settings.anthropic_api_key)
+                message = client.messages.create(
+                    model=settings.anthropic_model,
+                    max_tokens=2048,
+                    system=_EXTRACTION_SYSTEM,
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": f"Extract code intelligence from this tool output:\n\n{content[:8000]}",
+                        }
+                    ],
+                )
+                return message.content[0].text.strip()
+
+            raw_json = await asyncio.to_thread(_extract_via_llm)
         except Exception as exc:
             logger.error("LLM extraction failed: %s", exc)
             return []
@@ -152,3 +157,4 @@ class GenericIngestor(BaseIngestor):
             file_path=item.get("file_path"),
             language=item.get("language") or "python",
         )
+

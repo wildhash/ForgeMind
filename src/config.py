@@ -68,6 +68,9 @@ class Settings(BaseSettings):
     )
 
 
+# Settings are loaded once per process and cached. Changes to environment variables or
+# the `.env` file after the first call will not be reflected until the process restarts
+# (or tests reset the cache).
 _settings: Settings | None = None
 
 
@@ -84,7 +87,10 @@ def get_settings() -> Settings:
     return _settings
 
 
-def _reset_settings_cache() -> None:
-    """Clear the cached settings instance (intended for tests)."""
+def _test_reset_settings_cache() -> None:
+    """[TESTS ONLY] Clear the cached settings instance.
+
+    Do not call this from production code; assume process-level configuration.
+    """
     global _settings
     _settings = None
